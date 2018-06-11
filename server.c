@@ -1,108 +1,272 @@
+/* Auther: ChuJK
+ * Date: 2011.8.14
+ * 服务端数据处理文件
+ */
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <pthread.h>
+
+#include <netdb.h>
+
 #include "server.h"
+#include "device.h"
 
-//初始化全局结构体
-struct info server_info={
-				.cdev_beep = "/dev/qq_beep",
-				.cdev_moto = "/dev/qq_moto",
-				.cdev_yuntai = "/dev/qq_yuntai",
-			  .cdev_cam = "/dev/video0",
-        .motoL_dir = 0,
-				.motoL_min = 0,
-				.motoL_max = 20,
-        .motoL_default=0,
-				.motoR_dir =2,
-				.motoR_min = 0,
-				.motoR_max = 20,
-        .motoR_default=0,
-				.yuntai_H_min = 4,
-				.yuntai_H_max = 23,
-				.yuntai_H_default = 14,
-				.yuntai_V_min = 4,
-				.yuntai_V_max = 23,
-				.yuntai_V_default = 14,
-				.lastcmd="Init ok",
-				.net={
-						.server_ip="localhost",
-						.cmd_cfd=0,
-						.img_cfd=0,
-						.net_signal=0,
-						.net_delay=1000,
-						.cmd_socket="Inited",
-						.img_socket="Inited",
-						.cmd_rx=0,
-						.cmd_tx=0,
-						.img_rx=0,
-						.img_tx=0,
-				},
-				.cam={
-						.width=320,
-						.height=240,
-						.fps=100,
-						.format="MJPEG",
-				},
-};
+#define BUFFER_LEN	1024
 
-
-int main(int argc,char * argv)
+void out_addr_port(struct sockaddr_in *addr)
 {
-  int ret;
-  pthread_t dis_id,cmd_id,img_id,cam_id;
-
-  pthread_mutex_init(&mutex,NULL);
-  //拦截ctrl+c退出消息
-  signal(SIGINT,server_exit);
-  signal(SIGPIPE,SIG_IGN);
-
-  //打开所有设备文件,及对其初始化
-  init_dev();
-  ret=init_camera();
-  ret=init_network();
-  if(ret<0) return -1;  
-  ret=pthread_create(&cmd_id,NULL,net_cmd,NULL); //启动cmd网络线程
-  ret=pthread_create(&cam_id,NULL,cam_work,NULL); //启动摄像头采集线程
-  
-  sleep(2); 
-  //显示车辆参数
-  //ret=pthread_create(&dis_id,NULL,display_zz,NULL);
-  
-  pthread_join(cmd_id,0);
-  return 0;
+	char ip[16];
+	memset(ip,0,16);
+	inet_ntop(AF_INET,&addr->sin_addr.s_addr,ip,16);
+	printf("%s:%d",ip,ntohs(addr->sin_port));
 }
 
-//初始化设备
-int init_dev(void)
+//初始化服务端
+int init_socket(int port)
 {
-  int ret=0;
+	int res;
+	s_sockfd = socket(AF_INET,SOCK_STREAM,0);
+	if(s_sockfd < 0)
+	{
+		fprintf(stderr,"s_sockfd: %s\n",strerror(errno));
+		exit(1);
+	}
+	
+	struct sockaddr_in	saddr;
+	socklen_t			slen = sizeof(saddr);
+	memset(&saddr,0,slen);
+	saddr.sin_family = AF_INET;
+	saddr.sin_port = htons(port);//端口号
+	saddr.sin_addr.s_addr = INADDR_ANY;
+	memset(&saddr.sin_zero,0,sizeof(saddr.sin_zero));
 
-  //初始化beep
-  printf("Init beep ...");
-  server_info.beep_fd = open(server_info.cdev_beep,O_RDWR);
-  if (server_info.beep_fd<0) 
-  printf("...fail\n");
-  else
-  printf("...ok\n");
+	//设置端口可重用
+	int val = 1;
+	setsockopt(s_sockfd,SOL_SOCKET,SO_REUSEADDR,&val,sizeof(val));
 
-  //初始化马达
-  printf("Init moto ...");
-  server_info.moto_fd = open(server_info.cdev_moto,O_RDWR);
-  if (server_info.moto_fd<0)
-  printf("...fail\n");
-  else
-  printf("...ok\n");
+	if(bind(s_sockfd,(struct sockaddr*)&saddr,slen) < 0)
+	{
+		fprintf(stderr,"bind: %s\n",strerror(errno));
+		exit(1);
+	}
 
-  //初始化云台
-  printf("Init yuntai ...");
-  server_info.yuntai_fd = open(server_info.cdev_yuntai,O_RDWR);
-  if (server_info.yuntai_fd<0)
-  printf("...fail\n");
-  else
-  printf("...ok\n");
-  return ret;
+	pthread_mutex_init(&mutex,NULL);
+	pthread_cond_init(&cond,NULL);
+	pthread_attr_init(&attr);
+
+	return 0;
 }
 
-void server_exit(int signo)
+void *th_getframe(void *arg)
 {
-  printf("server exit\n");
-  close(server_info.cam.cam_fd);
-  exit(0);
+	while(1)
+	{
+		if(clients > 0)
+		{
+			//已连接的客户端数
+			////printf("clients:%d\n",clients);
+			get_frame();
+			pthread_mutex_lock(&mutex);
+			memcpy(tmp_buf,buffer[okindex].start,buffer[okindex].length);
+			pthread_mutex_unlock(&mutex);
+			pthread_cond_broadcast(&cond);
+			//usleep(80000);
+		}
+		else
+		{
+			if(!on_off)
+			{
+				sleep(1);
+				if(clients > 0)
+				{
+					if(!on_off)
+						cam_on();
+				}
+				else
+				{
+				//	printf("camera is off,noclients\n");
+					continue;
+				}
+
+			}
+			else
+			{
+				int off_rest = 5;//摄像头关闭剩余时间
+				printf("there is no clients connected\n");
+				printf("the camera will be turn off in %d seconds\n",off_rest);
+				while(off_rest)
+				{
+					printf("%d...\n",off_rest);
+					sleep(1);
+					if(clients > 0)
+					{
+						printf("client connected,camera turn off cancel\n");
+						break;
+					}
+					else
+					{
+						off_rest--;//剩余时间减1
+					}
+				}
+				if(clients > 0)
+					continue;
+				if(on_off)
+					cam_off();
+				printf("waiting for new client...\n");
+			}
+		}
+	}
+}
+
+static void th_exit(int sockfd)
+{
+	printf(" --> client offline\n");
+	printf("clients:%d\n",clients);
+	close(sockfd);
+	pthread_exit(NULL);
+}
+
+void *th_service(void *arg)
+{
+	pthread_t tid = pthread_self();
+	int sockfd = (int)arg;
+	
+	struct sockaddr_in	caddr;
+	socklen_t			clen = sizeof(caddr);
+	memset(&caddr,0,clen);
+	getpeername(sockfd,(struct sockaddr*)&caddr,&clen);
+	
+	char head[BUFFER_LEN];
+	size_t size;
+	int action;
+	size = read(sockfd,head,BUFFER_LEN);
+	if(size < 0)
+	{
+		fprintf(stderr,"read: %s\n",strerror(errno));
+		return ;
+	}
+	else
+	{
+		printf("----------cilent_head-----------\n");
+		fflush(stdout);
+		if(write(STDOUT_FILENO,head,size) != size)
+		{
+			fprintf(stderr,"write: %s\n",strerror(errno));
+		}
+		printf("-----------head_end-------------\n");
+
+		//判断客户端要什么类型的数据
+		if(strstr(head,"action=snap") != NULL)
+		{
+			printf("action:sanpshot\n");
+			clients++;//已连接客户端线程数+1
+			printf("cilents:%d\n",clients);
+			action = 0;
+		}
+		else if(strstr(head,"action=stream") != NULL)
+		{
+			printf("action:stream\n");
+			clients++;
+			printf("cilents:%d\n",clients);
+			action = 1;
+		}
+		else
+		{
+			printf("unknown action\n");
+			out_addr_port(&caddr);
+			th_exit(sockfd);
+		}
+
+		//http响应由3部分组成，分别是：状态行、消息报头、响应正文
+		memset(head,0,BUFFER_LEN);
+		sprintf(head,"HTTP/1.0 200 OK\r\n"\    //状态行
+					"Connection: Keep-Alive\r\n"\
+					"Server: Network camera\r\n"\
+					"Cache-Control: no-cache,no-store,must-revalidate,pre-check=0,max-age=0\r\n"\
+					"Pragma: no-cache\r\n"\
+					"Content-Type: multipart/x-mixed-replace;boundary=KK\r\n");
+		printf("----------server_head-----------\n");
+		write(STDOUT_FILENO,head,strlen(head));
+		if(write(sockfd,head,strlen(head)) != strlen(head))
+		{
+			fprintf(stderr,"write: %s\n",strerror(errno));
+		}
+		printf("-----------head_end-------------\n");
+	}
+	while(1)
+	{
+		sprintf(head,"\r\n--KK\r\n"\
+					"Content-Type: image/jpeg\n"\
+					"Content-Length: %d\n\n",buffer[okindex].length+432);
+		size = write(sockfd,head,strlen(head));
+		if(size != strlen(head))
+		{
+			//错误返回-1，errno = 32
+			break;
+		}
+
+		pthread_mutex_lock(&mutex);//上锁
+		pthread_cond_wait(&cond,&mutex);//等待
+		////printf("---tid:0x%lx--length:%d--sockfd:%d---\n",tid,buffer[okindex].length+432,sockfd);
+		print_picture(sockfd,tmp_buf,buffer[okindex].length);
+		pthread_mutex_unlock(&mutex);//解锁
+		//若只取一张图片则跳出循环
+		if(!action)
+			break;
+	}
+	out_addr_port(&caddr);
+	clients--;
+	th_exit(sockfd);
+}
+
+int lis_acc(int max_lis)
+{	
+	listen(s_sockfd,10);//开始接受客户端请求，等待队列长度为10
+
+	pthread_t th;
+	int err;
+	err = pthread_create(&th,&attr,th_getframe,NULL);
+	if(err < 0)
+	{
+		fprintf(stderr,"pthread_create: %s\n",strerror(err));
+		return -1;
+	}
+
+	struct sockaddr_in	caddr;
+	socklen_t			clen = sizeof(caddr);
+	int sockfd;
+	while(1)
+	{
+		memset(&caddr,0,clen);
+		sockfd = accept(s_sockfd,(struct sockaddr*)&caddr,&clen);//获得连接请求并建立连接
+		if(sockfd < 0)
+		{
+			fprintf(stderr,"accept: %s\n",strerror(errno));
+		}
+		else
+		{
+			out_addr_port(&caddr);
+			printf(" connected\tsockfd: %d  clients:%d\n",sockfd,clients);
+			fflush(stdout);
+			err = pthread_create(&th,&attr,th_service,(void*)sockfd);
+			if(err < 0)
+			{
+				fprintf(stderr,"pthread_create: %s\n",strerror(err));
+				continue;
+			}
+		}
+	}
+}
+
+//卸载服务端
+int uninit_socket(void)
+{
+	close(s_sockfd);//关闭服务端连接
+	return 0;
 }
