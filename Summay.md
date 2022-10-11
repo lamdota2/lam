@@ -1,4 +1,10 @@
-[TOC]
+**[TOC]**
+
+- [调查hang和常见进程问题](#调查hang和常见进程问题)
+- [gdb attach](#gdb-attach)
+- [ftrace](#ftrace)
+- [查看进程下的所有线程](#查看进程下的所有线程)
+ 
 ### 调查hang和常见进程问题
 
 ### gdb attach
@@ -15,11 +21,15 @@ root@asp-1a:~ >cat /proc/9259/stack
 ```
 ### ftrace
 
-### pstree -t查看进程下的所有线程
+### 查看进程下的所有线程
+pstree -t
 
 https://ecotrust-canada.github.io/markdown-toc/
 
-- [调查hang和常见进程问题](#--hang-------)
-- [gdb attach](#gdb-attach)
-- [ftrace](#ftrace)
-- [pstree -t查看进程下的所有线程](#pstree--t----------)
+
+
+### 生成标题
+其实只要把"[TOC]"换成下方所示语法即可
+
+- [显示在目录上的一级标题名](#实际一级标题名)
+  - [显示在目录上的二级标题名](#实际二级标题名)
