@@ -1,10 +1,13 @@
 **[TOC]**
-
+- [markdown guide](#guide)
 - [调查hang和常见进程问题](#调查hang和常见进程问题)
 - [gdb attach](#gdb-attach)
 - [ftrace](#ftrace)
 - [查看进程下的所有线程](#查看进程下的所有线程)
- 
+
+### guide
+http://marxi.co/
+
 ### 调查hang和常见进程问题
 
 ### gdb attach
