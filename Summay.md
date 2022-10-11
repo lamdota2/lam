@@ -1,5 +1,8 @@
-# 调查hang和常见进程问题
-## gdb attach 
+[TOC]
+### 调查hang和常见进程问题
+
+### gdb attach
+
 ```bash script
 root@asp-1a:~ >cat /proc/9259/stack
 [<0>] futex_wait_queue_me+0xb4/0x110
@@ -10,6 +13,6 @@ root@asp-1a:~ >cat /proc/9259/stack
 [<0>] entry_SYSCALL_64_after_hwframe+0x44/0xa9
    
 ```
-## ftrace
+### ftrace
 
-## pstree -t查看进程下的所有线程
+### pstree -t查看进程下的所有线程
