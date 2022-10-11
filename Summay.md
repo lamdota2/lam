@@ -16,3 +16,10 @@ root@asp-1a:~ >cat /proc/9259/stack
 ### ftrace
 
 ### pstree -t查看进程下的所有线程
+
+https://ecotrust-canada.github.io/markdown-toc/
+
+- [调查hang和常见进程问题](#--hang-------)
+- [gdb attach](#gdb-attach)
+- [ftrace](#ftrace)
+- [pstree -t查看进程下的所有线程](#pstree--t----------)
