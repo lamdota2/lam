@@ -17,7 +17,21 @@ root@asp-1a:~ >cat /proc/9259/stack
 [<0>] __x64_sys_futex+0x146/0x1c0
 [<0>] do_syscall_64+0x33/0x40
 [<0>] entry_SYSCALL_64_after_hwframe+0x44/0xa9
-   
+
+root@asp-1a:/opt/usr >./bin/gdb attach 9259
+(gdb) bt
+#0  0x00007ffff6fc0196 in ?? () from target:/usr/lib64/libc.so.6
+#1  0x00007ffff7031a79 in ?? () from target:/usr/lib64/libc.so.6
+#2  0x00007ffff7031b49 in syslog () from target:/usr/lib64/libc.so.6
+#3  0x00007ffff76f66e9 in copyPrintToJournal () from target:/opt/lib/libCCSRT.so
+#4  0x00007ffff76f796f in AaSysLogPrint () from target:/opt/lib/libCCSRT.so
+#5  0x000000000040def4 in ?? ()
+#6  0x0000000000412b15 in ?? ()
+#7  0x0000000000409e98 in ?? ()
+#8  0x0000000000405e59 in ?? ()
+#9  0x00007ffff6f65e0a in __libc_start_main () from target:/usr/lib64/libc.so.6
+#10 0x0000000000405efa in ?? ()![image](https://user-images.githubusercontent.com/33516039/194984044-b5a1fce1-22b2-4895-977b-c44bc30d868b.png)
+
 ```
 ### ftrace
 
