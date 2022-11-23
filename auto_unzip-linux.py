@@ -1,9 +1,9 @@
 import os
 import sys
+import time
 import subprocess
 """
 useage:
-    configure env PATH    C:\Program Files\7-Zip
     execute cmd:
         cd snapshot file
         python unzip.py Snapshot_20220926-182739_SBTS22R4_ENB_0000_000558_000000T1.zip
@@ -23,20 +23,21 @@ print("Prepare to auto parse snapshot")
 if not os.path.exists(unzippath):
     os.mkdir(unzippath)
     print("Create directory:" + unzippath)
-cmdline = '7z x -y -r -o' + '"' + unzippath + '" "' + os.path.join(name) + '"'
+cmdline = 'unzip ' + os.path.join(name) + ' -d ' + unzippath
 print("Unzip:" + cmdline)
 sub = subprocess.Popen(cmdline,shell=True,stdout=subprocess.PIPE)
+#time.sleep(0.1)
 sub.wait()
-
+cdline = 'cd ' + unzippath
+sub = subprocess.Popen(cdline,shell=True,stdout=subprocess.PIPE)
 #3 refers to decompressing to the second level subdirectory, and multiple formats can be specified
 for i in range(1,3):
     name = sys.argv[1]
     file_name = os.path.splitext(name)[0]
-    print(i)
     for root, dirs, files in os.walk(file_name):
-        # print(root, dirs, files)
+        #print(root, dirs, files)
         for name in files:
-            if name.endswith('.zip') or name.endswith('.tar'): 
+            if name.endswith('.zip'):
                 file_name = os.path.splitext(name)[0]           
                 unzippath = os.path.join(root,file_name)
 
@@ -44,13 +45,29 @@ for i in range(1,3):
                     os.mkdir(unzippath)
                     print("Create directory:" + unzippath)
                 
-                cmdline = '7z x -y -r -o' + '"' + unzippath + '" "' + os.path.join(root,name) + '"'
+                cmdline = 'unzip ' + os.path.join(root,name) + ' -d ' + unzippath
                 print("Unzip:" + cmdline)
                 sub = subprocess.Popen(cmdline,shell=True,stdout=subprocess.PIPE)
                 sub.wait()
                            
-                cmdline = 'del /Q ' + '"' + os.path.join(root,name) + '"'
+                cmdline = 'rm ' + '"' + os.path.join(root,name) + '"'
                 print("Delete:" + cmdline)
                 sub = subprocess.Popen(cmdline,shell=True,stdout=subprocess.PIPE)
                 sub.wait()
+            if  name.endswith('.tar'): 
+                file_name = os.path.splitext(name)[0]           
+                unzippath = os.path.join(root,file_name)
 
+                if not os.path.exists(unzippath):
+                    os.mkdir(unzippath)
+                    print("Create directory:" + unzippath)
+                #tar -xvf -C to the specified directory
+                cmdline = 'tar -xvf ' + os.path.join(root,name) + ' -C ' + unzippath
+                print("tar :" + cmdline)
+                sub = subprocess.Popen(cmdline,shell=True,stdout=subprocess.PIPE)
+                sub.wait()
+
+                cmdline = 'rm ' + '"' + os.path.join(root,name) + '"'
+                print("Delete tar :" + cmdline)
+                sub = subprocess.Popen(cmdline,shell=True,stdout=subprocess.PIPE)
+                sub.wait()
