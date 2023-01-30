@@ -4,7 +4,7 @@
 - [gdb attach](#gdb-attach)
 - [ftrace](#ftrace)
 - [查看进程下的所有线程](#查看进程下的所有线程)
-- [### vim插件&sed](# vim插件&sed)
+- [vim插件&sed](# vim插件&sed)
 
 ### guide
 http://marxi.co/
