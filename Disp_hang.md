@@ -4,6 +4,7 @@
 - [gdb attach](#gdb-attach)
 - [ftrace](#ftrace)
 - [查看进程下的所有线程](#查看进程下的所有线程)
+- [### vim插件&sed](# vim插件&sed)
 
 ### guide
 http://marxi.co/
@@ -43,7 +44,14 @@ pstree -t
 
 https://ecotrust-canada.github.io/markdown-toc/
 
+### vim插件&sed
+1.批量替换关键字
 
+sed -i "s/AAEMSERVICES_EMDISPMON_DBG/AAEMSERVICES_EMDISPMON_ERR/g" ` grep AAEMSERVICES_EMDISPMON_DBG -rl  .`
+
+2.vim代码插件
+
+ctags & cscope
 
 ### 生成标题
 其实只要把"[TOC]"换成下方所示语法即可
