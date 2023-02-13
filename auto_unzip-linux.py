@@ -31,13 +31,15 @@ sub.wait()
 cdline = 'cd ' + unzippath
 sub = subprocess.Popen(cdline,shell=True,stdout=subprocess.PIPE)
 #3 refers to decompressing to the second level subdirectory, and multiple formats can be specified
-for i in range(1,3):
+while True:
+    unzip_flag = False
     name = sys.argv[1]
     file_name = os.path.splitext(name)[0]
     for root, dirs, files in os.walk(file_name):
         #print(root, dirs, files)
         for name in files:
             if name.endswith('.zip'):
+                unzip_flag = True
                 file_name = os.path.splitext(name)[0]           
                 unzippath = os.path.join(root,file_name)
 
@@ -55,6 +57,7 @@ for i in range(1,3):
                 sub = subprocess.Popen(cmdline,shell=True,stdout=subprocess.PIPE)
                 sub.wait()
             if  name.endswith('.tar'): 
+                unzip_flag = True
                 file_name = os.path.splitext(name)[0]           
                 unzippath = os.path.join(root,file_name)
 
@@ -71,3 +74,5 @@ for i in range(1,3):
                 print("Delete tar :" + cmdline)
                 sub = subprocess.Popen(cmdline,shell=True,stdout=subprocess.PIPE)
                 sub.wait()
+    if not unzip_flag:
+        break
