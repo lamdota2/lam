@@ -41,6 +41,7 @@ root@asp-1a:/opt/usr >./bin/gdb attach 9259
 
 ### 查看进程下的所有线程
 pstree -t
+
 ps aux -T
 
 https://ecotrust-canada.github.io/markdown-toc/
