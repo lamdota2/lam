@@ -1,0 +1,8 @@
+
+apt-get install 失败
+sudo -i
+Acquire::http::Proxy "http://10.144.1.10:8080";
+Acquire::ftp::proxy "http://10.144.1.10:8080";
+Acquire::https::proxy "http://10.144.1.10:8080";
+
+apt的代理是在 /etc/apt/apt.conf里加上面的配置
