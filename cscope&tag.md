@@ -31,6 +31,7 @@ Ctrl+]   Ctrl+t
 2或者d  —— 查找被这个函数调用的函数（们）
 3或者c  —— 查找调用这个函数的函数（们）
 
+cscope -d打开图形界面
 Ctrl+D 退出cscope界面
 
 https://ratel.blog.csdn.net/article/details/121187199 -fsanitize=address
