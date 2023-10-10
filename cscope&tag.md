@@ -25,25 +25,23 @@ Ctrl+]   Ctrl+t
 
 1. cscope -Rbqk
 
+## 用法  
+1或者g  —— 查找这个定义  
+2或者d  —— 查找被这个函数调用的函数  
+3或者c  —— 查找调用这个函数的函数  
 
-
-1或者g  —— 查找这个定义
-2或者d  —— 查找被这个函数调用的函数（们）
-3或者c  —— 查找调用这个函数的函数（们）
-
-***
 cscope -d打开图形界面
-***
+
 Ctrl+D 退出cscope界面
 
 https://ratel.blog.csdn.net/article/details/121187199 -fsanitize=address
 
-比如常用的有（选项c）查找调用此函数的地方，（选项d）查找此函数调用的地方，（选项g）查找函数定义。
+比如常用的有（选项c）查找调用此函数的地方，（选项d）查找此函数调用的地方，（选项g）查找函数定义。  
 
-find : 查询一个模式                   (Usage: find a|c|d|e|f|g|i|s|t name)
-       a: Find assignments to thissymbol
-       c: Find functions calling thisfunctiond: Find functions called bythisfunctione: Find thisegrep pattern
-       f: Find thisfile
-       g: Find thisdefinition
-       i: Find files #including this files: Find thisC symbol
-       t: Find thistext string
+find : 查询一个模式                   (Usage: find a|c|d|e|f|g|i|s|t name)  
+       a: Find assignments to thissymbol  
+       c: Find functions calling thisfunctiond: Find functions called bythisfunctione: Find thisegrep pattern  
+       f: Find thisfile  
+       g: Find thisdefinition  
+       i: Find files #including this files: Find thisC symbol  
+       t: Find thistext string  
