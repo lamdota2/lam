@@ -1,14 +1,14 @@
-cstag:
+## cstag:
 
     [http://cscope.sourceforge.net]
 下载cscope
 
-2.安装:
-     tar -zxf cscope-xx.x.tar.gz 
-     cd cscope-xx.x 
-     ./configure 
-     make 
-     make install
+2.安装:  
+     tar -zxf cscope-xx.x.tar.gz  
+     cd cscope-xx.x  
+     ./configure  
+     make  
+     make install 
     然后把contib/xcscope/目录下的cscope-indexer复制到PATH目录比如/usr/local/bin 
 
 find . -name "*.h" -o -name "*.c" -o -name "*.cc" -o -name "*.sh" -o -name "*.cpp"  -o -name "*.hpp" > cscope.files
@@ -31,7 +31,9 @@ Ctrl+]   Ctrl+t
 2或者d  —— 查找被这个函数调用的函数（们）
 3或者c  —— 查找调用这个函数的函数（们）
 
+***
 cscope -d打开图形界面
+***
 Ctrl+D 退出cscope界面
 
 https://ratel.blog.csdn.net/article/details/121187199 -fsanitize=address
