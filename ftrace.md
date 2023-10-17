@@ -1,6 +1,8 @@
 ### Enable ftrace（自行添加flag）:   
-cat /sys/kernel/debug/tracing/trace\
-tasket -p pid/tid\
+```bash
+cat /sys/kernel/debug/tracing/trace
+tasket -p pid/tid
+```
 **Enable the ftrace:**
 ```C
     system("echo 1 >  /sys/kernel/debug/tracing/events/syscalls/sys_enter_sched_setaffinity/enable");
