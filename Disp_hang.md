@@ -1,4 +1,3 @@
-**[TOC]**
 - [markdown guide](#guide)
 - [调查hang和常见进程问题](#调查hang和常见进程问题)
 - [gdb attach](#gdb-attach)
@@ -45,7 +44,9 @@ pstree -t
 ps aux -T
 
 https://ecotrust-canada.github.io/markdown-toc/
-
+```bash
+ps -Leo pid,tid,class,rtprio,ni,pri,psr,pcpu,stat,wchan:14,comm
+```
 ### vim插件&sed
 1.批量替换关键字
 
